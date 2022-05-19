@@ -1,0 +1,11 @@
+name: aws_log_content_displayer
+description: An application created to parse requests from .gz log files created by Amazon S3.
+version: 1.0.0
+
+environment:
+  sdk: '>=2.16.2 <3.0.0'
+
+dependencies:
+
+dev_dependencies:
+  lints: ^1.0.0
