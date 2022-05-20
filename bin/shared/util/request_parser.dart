@@ -48,4 +48,10 @@ class RequestParser {
 
     return buffer.toString();
   }
+
+  List<GroupedRequestsByPath> sortRequests(
+      List<GroupedRequestsByPath> groupedRequests) {
+    final sortedRequests = groupedRequests..sort((a, b) => a.compareTo(b));
+    return sortedRequests;
+  }
 }

@@ -17,7 +17,8 @@ class FileReader {
     final fileEntities = _getFilesFromRootDirectory(rootDirectory);
     final requests = _extractRequests(fileEntities);
     final groupedRequests = requestParser.groupRequests(requests);
-    _exportResultsToFile(groupedRequests, rootDirectory);
+    final sortedRequests = requestParser.sortRequests(groupedRequests);
+    _exportResultsToFile(sortedRequests, rootDirectory);
   }
 
   Iterable<FileSystemEntity> _getFilesFromRootDirectory(
