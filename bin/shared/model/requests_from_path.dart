@@ -1,12 +1,12 @@
 import 'request.dart';
 
-class GroupedRequestsByPath implements Comparable<GroupedRequestsByPath> {
+class RequestsFromPath implements Comparable<RequestsFromPath> {
   final String path;
   final List<Request> requests = <Request>[];
 
   int get requestsCount => requests.length;
 
-  GroupedRequestsByPath({
+  RequestsFromPath({
     required this.path,
   });
 
@@ -26,13 +26,13 @@ class GroupedRequestsByPath implements Comparable<GroupedRequestsByPath> {
 
   @override
   bool operator ==(Object other) =>
-      other is GroupedRequestsByPath && path == other.path;
+      other is RequestsFromPath && path == other.path;
 
   @override
   int get hashCode => Object.hash(path, path);
 
   @override
-  int compareTo(GroupedRequestsByPath other) {
+  int compareTo(RequestsFromPath other) {
     if (path == other.path) {
       return 0;
     }

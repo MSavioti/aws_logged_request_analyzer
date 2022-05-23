@@ -19,9 +19,14 @@ class Request {
 
   factory Request.fromMap(Map<String, dynamic> map) {
     final String timestamp = map["timestamp_iso8601"] ?? '';
+    String url = map["request_url"] ?? '';
+
+    if (url.isNotEmpty && url.contains('?')) {
+      url = url.split('?').first;
+    }
 
     return Request(
-      url: map["request_url"] ?? '',
+      url: url,
       type: map["request_type"] ?? '',
       timestamp: DateTime.tryParse(timestamp) ?? DateTime(0),
       host: map["http_host"] ?? '',

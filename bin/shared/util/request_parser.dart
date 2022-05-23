@@ -1,34 +1,60 @@
+import 'dart:collection';
 import 'dart:convert';
 
-import '../model/grouped_requests_by_path.dart';
+import '../model/requests_from_path.dart';
 import '../model/request.dart';
 
 class RequestParser {
-  List<GroupedRequestsByPath> groupRequests(List<Request> requests) {
-    final groupedRequests = <GroupedRequestsByPath>[];
+  HashMap<String, RequestsFromPath> mapRequests(List<Request> requests) {
+    final mappedRequests = HashMap<String, RequestsFromPath>();
+    int requestsGrouped = 0;
+    int totalRequestsToBeGrouped = requests.length;
 
     for (var request in requests) {
-      final groupedRequest = GroupedRequestsByPath(path: request.url);
-      groupedRequest.requests.add(request);
+      mappedRequests.update(
+        request.url,
+        (v) => _updateValue(v, request),
+        ifAbsent: () => _addValue(request),
+      );
 
-      if (groupedRequests.contains(groupedRequest)) {
-        final itemIndex = groupedRequests.indexOf(groupedRequest);
-        final existingItem = groupedRequests.elementAt(itemIndex);
-        groupedRequests.removeAt(itemIndex);
-        groupedRequest.requests.addAll(existingItem.requests);
-        groupedRequests.add(groupedRequest);
-      } else {
-        groupedRequests.add(groupedRequest);
-      }
+      requestsGrouped++;
+      print('$requestsGrouped/$totalRequestsToBeGrouped requests grouped');
     }
 
-    return groupedRequests;
+    return mappedRequests;
+  }
+
+  List<RequestsFromPath> listMappedRequests(
+    HashMap<String, RequestsFromPath> mappedRequests,
+  ) {
+    final requests = <RequestsFromPath>[];
+
+    mappedRequests.forEach((key, value) {
+      requests.add(value);
+    });
+
+    return requests;
+  }
+
+  RequestsFromPath _updateValue(
+    RequestsFromPath requestsFromPath,
+    Request request,
+  ) {
+    requestsFromPath.requests.add(request);
+    return requestsFromPath;
+  }
+
+  RequestsFromPath _addValue(Request request) {
+    final groupedRequest = RequestsFromPath(path: request.url);
+    groupedRequest.requests.add(request);
+    return groupedRequest;
   }
 
   List<Request> extractRequestsFromFileContent(List<String> fileContentLines) {
+    final filteredLines = _filterUploadedFiles(fileContentLines);
     final requests = <Request>[];
 
-    for (var line in fileContentLines) {
+    for (var line in filteredLines) {
       if (line.isNotEmpty) {
         final map = json.decode(line);
         final request = Request.fromMap(map);
@@ -39,19 +65,45 @@ class RequestParser {
     return requests;
   }
 
-  String generateRequestsOutput(List<GroupedRequestsByPath> groupedRequests) {
+  List<String> _filterUploadedFiles(List<String> fileContentLines) {
+    return fileContentLines
+        .where((line) => !line.contains('/wp-content/uploads'))
+        .toList();
+  }
+
+  String generateRequestsOutputFromMap(
+    HashMap<String, RequestsFromPath> mappedRequests,
+  ) {
+    final buffer = StringBuffer();
+
+    mappedRequests.forEach((key, value) {
+      buffer.write('\nPath: "$key"\n');
+      buffer.write('Requests: "${value.requestsCount}"\n');
+    });
+
+    return buffer.toString();
+  }
+
+  String generateRequestsOutputFromList(
+    List<RequestsFromPath> groupedRequests,
+  ) {
     final buffer = StringBuffer();
 
     for (var request in groupedRequests) {
-      buffer.write(request.toString());
+      if (request.requestsCount > 10) {
+        buffer.write('\nPath: "${request.path}"\n');
+        buffer.write('Requests: "${request.requestsCount}"\n');
+      }
     }
 
     return buffer.toString();
   }
 
-  List<GroupedRequestsByPath> sortRequests(
-      List<GroupedRequestsByPath> groupedRequests) {
-    final sortedRequests = groupedRequests..sort((a, b) => a.compareTo(b));
+  List<RequestsFromPath> sortRequests(List<RequestsFromPath> groupedRequests) {
+    final sortedRequests = groupedRequests
+      ..sort(
+        (a, b) => a.compareTo(b),
+      );
     return sortedRequests;
   }
 }
