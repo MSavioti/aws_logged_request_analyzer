@@ -118,8 +118,9 @@ class FileReader {
     final outputAnalysisFile = File(outputPath);
     final outputRequestData = requestParser
         .generateRequestsOutputFromList(requestsOfContentType.requests);
+
     outputAnalysisFile.writeAsStringSync(
-        'Content type: ${requestsOfContentType.toString()}\n');
+        'Content type: ${requestsOfContentType.contentTypes.toString()}\n');
     outputAnalysisFile.writeAsStringSync(
       'Errors: $_errors\n',
       mode: FileMode.append,
