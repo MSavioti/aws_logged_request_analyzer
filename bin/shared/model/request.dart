@@ -1,12 +1,12 @@
 class Request {
-  final String url; // "request_url"
-  final String requestType; // "request_type"
-  final String contentType; // "request_type"
-  final DateTime timestamp; // "timestamp_iso8601"
-  final String host; // "http_host"
-  final String referer; // "http_referer"
-  final String status; // "status"
-  final String ip; // "remote_addr"
+  final String url;
+  final String requestType;
+  final String contentType;
+  final DateTime timestamp;
+  final String host;
+  final String referer;
+  final String status;
+  final String ip;
 
   Request({
     required this.url,
