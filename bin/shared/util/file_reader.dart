@@ -1,9 +1,8 @@
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
-import '../model/requests_from_path.dart';
 import '../model/request.dart';
+import '../model/requests_of_content_type.dart';
 import 'request_parser.dart';
 
 class FileReader {
@@ -20,20 +19,23 @@ class FileReader {
     final rootDirectory = Directory(rootDirectoryPath);
     final fileEntities = _getFilesFromRootDirectory(rootDirectory);
     final requests = _extractRequests(fileEntities);
-    final mappedRequests = requestParser.mapRequests(requests);
-    final listedRequests = requestParser.listMappedRequests(mappedRequests);
-    final sortedRequests = requestParser.sortRequests(listedRequests);
+    final appRequests = _analyzeRequestsByContentType(
+        requests, ['text/html', 'application/xhtml']);
+    final apiRequests =
+        _analyzeRequestsByContentType(requests, ['application/json']);
     stopwatch.stop();
-    _exportResultsFromListToFile(
-      sortedRequests,
-      rootDirectory,
-      stopwatch.elapsedMilliseconds,
+
+    _exportResultsToFile(
+      requestsOfContentType: appRequests,
+      outputPath: '${rootDirectoryPath}_app_requests.txt',
+      elapsedMilisseconds: stopwatch.elapsedMilliseconds,
     );
-    // _exportResultsFromMapToFile(
-    //   mappedRequests,
-    //   rootDirectory,
-    //   stopwatch.elapsedMilliseconds,
-    // );
+
+    _exportResultsToFile(
+      requestsOfContentType: apiRequests,
+      outputPath: '${rootDirectoryPath}_api_requests.txt',
+      elapsedMilisseconds: stopwatch.elapsedMilliseconds,
+    );
   }
 
   Iterable<FileSystemEntity> _getFilesFromRootDirectory(
@@ -92,40 +94,34 @@ class FileReader {
     return decodedFile;
   }
 
-  void _exportResultsFromMapToFile(
-    HashMap<String, RequestsFromPath> mappedRequests,
-    Directory rootDirectory,
-    int elapsedMilisseconds,
+  RequestsOfContentType _analyzeRequestsByContentType(
+    List<Request> requests,
+    List<String> contentTypes,
   ) {
-    final outputAnalysisFile = File('${rootDirectory.path}.txt');
-    final outputRequestData =
-        requestParser.generateRequestsOutputFromMap(mappedRequests);
-    outputAnalysisFile.writeAsStringSync('Errors: $_errors\n');
-    outputAnalysisFile.writeAsStringSync(
-      'Elapsed time: ${elapsedMilisseconds}ms\n',
-      mode: FileMode.append,
+    final requestsByContentType =
+        requests.where((e) => contentTypes.contains(e.contentType));
+    final mappedRequests = requestParser.mapRequests(requestsByContentType);
+    final listedRequests = requestParser.listMappedRequests(mappedRequests);
+    final sortedRequests = requestParser.sortRequests(listedRequests);
+    final requestsOfContentType = RequestsOfContentType(
+      contentTypes: contentTypes,
+      requests: sortedRequests,
     );
-    outputAnalysisFile.writeAsStringSync(
-      'Elapsed time: ${elapsedMilisseconds}ms\n',
-      mode: FileMode.append,
-    );
-    outputAnalysisFile.writeAsStringSync(
-      outputRequestData,
-      mode: FileMode.append,
-    );
+    return requestsOfContentType;
   }
 
-  void _exportResultsFromListToFile(
-    List<RequestsFromPath> groupedRequests,
-    Directory rootDirectory,
-    int elapsedMilisseconds,
-  ) {
-    final outputAnalysisFile = File('${rootDirectory.path}.txt');
-    final outputRequestData =
-        requestParser.generateRequestsOutputFromList(groupedRequests);
-    outputAnalysisFile.writeAsStringSync('Errors: $_errors\n');
+  void _exportResultsToFile({
+    required RequestsOfContentType requestsOfContentType,
+    required String outputPath,
+    required int elapsedMilisseconds,
+  }) {
+    final outputAnalysisFile = File(outputPath);
+    final outputRequestData = requestParser
+        .generateRequestsOutputFromList(requestsOfContentType.requests);
     outputAnalysisFile.writeAsStringSync(
-      'Elapsed time: ${elapsedMilisseconds}ms\n',
+        'Content type: ${requestsOfContentType.toString()}\n');
+    outputAnalysisFile.writeAsStringSync(
+      'Errors: $_errors\n',
       mode: FileMode.append,
     );
     outputAnalysisFile.writeAsStringSync(

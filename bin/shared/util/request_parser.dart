@@ -5,7 +5,7 @@ import '../model/requests_from_path.dart';
 import '../model/request.dart';
 
 class RequestParser {
-  HashMap<String, RequestsFromPath> mapRequests(List<Request> requests) {
+  HashMap<String, RequestsFromPath> mapRequests(Iterable<Request> requests) {
     final mappedRequests = HashMap<String, RequestsFromPath>();
     int requestsGrouped = 0;
     int totalRequestsToBeGrouped = requests.length;

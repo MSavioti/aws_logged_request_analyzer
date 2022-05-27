@@ -1,6 +1,7 @@
 class Request {
   final String url; // "request_url"
-  final String type; // "request_type"
+  final String requestType; // "request_type"
+  final String contentType; // "request_type"
   final DateTime timestamp; // "timestamp_iso8601"
   final String host; // "http_host"
   final String referer; // "http_referer"
@@ -9,7 +10,8 @@ class Request {
 
   Request({
     required this.url,
-    required this.type,
+    required this.requestType,
+    required this.contentType,
     required this.timestamp,
     required this.host,
     required this.referer,
@@ -27,7 +29,8 @@ class Request {
 
     return Request(
       url: url,
-      type: map["request_type"] ?? '',
+      requestType: map["request_type"] ?? '',
+      contentType: map["content_type"] ?? '',
       timestamp: DateTime.tryParse(timestamp) ?? DateTime(0),
       host: map["http_host"] ?? '',
       referer: map["http_referer"] ?? '',
@@ -41,7 +44,7 @@ class Request {
     final buffer = StringBuffer('\n');
     buffer.write('Request content:\n');
     buffer.write('URL: $url\n');
-    buffer.write('Request type: $type\n');
+    buffer.write('Request type: $requestType\n');
     buffer.write('Timestamp: $timestamp\n');
     buffer.write('HTTP host: $host\n');
     buffer.write('HTTP referer: $referer\n');
