@@ -23,6 +23,7 @@ class FileReader {
         requests, ['text/html', 'application/xhtml']);
     final apiRequests =
         _analyzeRequestsByContentType(requests, ['application/json']);
+    final emptyRequests = _analyzeRequestsByContentType(requests, ['']);
     stopwatch.stop();
 
     _exportResultsToFile(
@@ -34,6 +35,12 @@ class FileReader {
     _exportResultsToFile(
       requestsOfContentType: apiRequests,
       outputPath: '${rootDirectoryPath}_api_requests.txt',
+      elapsedMilisseconds: stopwatch.elapsedMilliseconds,
+    );
+
+    _exportResultsToFile(
+      requestsOfContentType: emptyRequests,
+      outputPath: '${rootDirectoryPath}_empty_requests.txt',
       elapsedMilisseconds: stopwatch.elapsedMilliseconds,
     );
   }

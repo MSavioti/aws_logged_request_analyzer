@@ -7,6 +7,7 @@ class Request {
   final String referer;
   final String status;
   final String ip;
+  final String httpUserAgent;
 
   Request({
     required this.url,
@@ -17,6 +18,7 @@ class Request {
     required this.referer,
     required this.status,
     required this.ip,
+    required this.httpUserAgent,
   });
 
   factory Request.fromMap(Map<String, dynamic> map) {
@@ -27,15 +29,22 @@ class Request {
       url = url.split('?').first;
     }
 
+    String _contentType = map["content_type"] ?? '';
+
+    if (_contentType.contains(';')) {
+      _contentType = _contentType.split(';').first;
+    }
+
     return Request(
       url: url,
       requestType: map["request_type"] ?? '',
-      contentType: map["content_type"] ?? '',
+      contentType: _contentType,
       timestamp: DateTime.tryParse(timestamp) ?? DateTime(0),
       host: map["http_host"] ?? '',
       referer: map["http_referer"] ?? '',
       status: map["status"] ?? '',
       ip: map["remote_addr"] ?? '',
+      httpUserAgent: map["http_user_agent"] ?? '',
     );
   }
 
@@ -50,6 +59,7 @@ class Request {
     buffer.write('HTTP referer: $referer\n');
     buffer.write('Status code: $status\n');
     buffer.write('IP: $ip\n');
+    buffer.write('HTTP User Agent: $httpUserAgent\n');
     return buffer.toString();
   }
 }
