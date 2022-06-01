@@ -8,5 +8,5 @@ void main(List<String> arguments) {
 
   final rootDirectoryPath = arguments.first;
   final reader = FileReader(rootDirectoryPath: rootDirectoryPath);
-  reader.readFiles();
+  reader.analyze();
 }

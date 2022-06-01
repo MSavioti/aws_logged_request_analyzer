@@ -8,6 +8,7 @@ class Request {
   final String status;
   final String ip;
   final String httpUserAgent;
+  final String scheme;
 
   Request({
     required this.url,
@@ -19,6 +20,7 @@ class Request {
     required this.status,
     required this.ip,
     required this.httpUserAgent,
+    required this.scheme,
   });
 
   factory Request.fromMap(Map<String, dynamic> map) {
@@ -45,6 +47,7 @@ class Request {
       status: map["status"] ?? '',
       ip: map["remote_addr"] ?? '',
       httpUserAgent: map["http_user_agent"] ?? '',
+      scheme: map["scheme"] ?? '',
     );
   }
 

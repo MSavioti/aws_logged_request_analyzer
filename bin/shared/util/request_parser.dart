@@ -90,18 +90,8 @@ class RequestParser {
     final buffer = StringBuffer();
 
     for (var request in groupedRequests) {
-      if (request.requestsCount > 10) {
-        buffer.write('\nPath: "${request.path}"\n');
-        buffer.write('Requests: "${request.requestsCount}"\n');
-
-        // if (request.path.contains('login.php')) {
-        //   buffer.write('\nHTTP User Agent for each:\n');
-
-        //   for (var r in request.requests) {
-        //     buffer.write(' - ${r.httpUserAgent}\n');
-        //   }
-        // }
-      }
+      buffer.write('\nPath: "${request.path}"\n');
+      buffer.write('Requests: "${request.requestsCount}"\n');
     }
 
     return buffer.toString();

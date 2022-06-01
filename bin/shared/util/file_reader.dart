@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import '../model/request.dart';
-import '../model/requests_of_content_type.dart';
+import '../model/requests_from_path.dart';
 import 'request_parser.dart';
 
 class FileReader {
@@ -13,36 +13,23 @@ class FileReader {
 
   FileReader({required this.rootDirectoryPath});
 
-  void readFiles() async {
+  void analyze({bool Function(Request)? requestFilter}) {
     final stopwatch = Stopwatch();
     stopwatch.start();
-    final rootDirectory = Directory(rootDirectoryPath);
-    final fileEntities = _getFilesFromRootDirectory(rootDirectory);
-    final requests = _extractRequests(fileEntities);
-    final appRequests = _analyzeRequestsByContentType(
-        requests, ['text/html', 'application/xhtml']);
-    final apiRequests =
-        _analyzeRequestsByContentType(requests, ['application/json']);
-    final emptyRequests = _analyzeRequestsByContentType(requests, ['']);
+    final files = _readFiles();
+    final requests = _extractRequests(files, requestFilter);
+    final results = _analyzeRequests(requests);
     stopwatch.stop();
 
     _exportResultsToFile(
-      requestsOfContentType: appRequests,
-      outputPath: '${rootDirectoryPath}_app_requests.txt',
+      requests: results.toList(),
       elapsedMilisseconds: stopwatch.elapsedMilliseconds,
     );
+  }
 
-    _exportResultsToFile(
-      requestsOfContentType: apiRequests,
-      outputPath: '${rootDirectoryPath}_api_requests.txt',
-      elapsedMilisseconds: stopwatch.elapsedMilliseconds,
-    );
-
-    _exportResultsToFile(
-      requestsOfContentType: emptyRequests,
-      outputPath: '${rootDirectoryPath}_empty_requests.txt',
-      elapsedMilisseconds: stopwatch.elapsedMilliseconds,
-    );
+  Iterable<FileSystemEntity> _readFiles() {
+    final rootDirectory = Directory(rootDirectoryPath);
+    return _getFilesFromRootDirectory(rootDirectory);
   }
 
   Iterable<FileSystemEntity> _getFilesFromRootDirectory(
@@ -61,8 +48,11 @@ class FileReader {
     return files;
   }
 
-  List<Request> _extractRequests(Iterable<FileSystemEntity> fileEntities) {
-    final requests = <Request>[];
+  List<Request> _extractRequests(
+    Iterable<FileSystemEntity> fileEntities,
+    bool Function(Request)? requestFilter,
+  ) {
+    var requests = <Request>[];
     int filesExtracted = 0;
     int totalFiles = fileEntities.length;
 
@@ -76,6 +66,10 @@ class FileReader {
       decodedFile.delete();
       filesExtracted++;
       print('$filesExtracted/$totalFiles files extracted');
+    }
+
+    if (requestFilter != null) {
+      requests = requests.where(requestFilter).toList();
     }
 
     return requests;
@@ -101,36 +95,28 @@ class FileReader {
     return decodedFile;
   }
 
-  RequestsOfContentType _analyzeRequestsByContentType(
+  Iterable<RequestsFromPath> _analyzeRequests(
     List<Request> requests,
-    List<String> contentTypes,
   ) {
-    final requestsByContentType =
-        requests.where((e) => contentTypes.contains(e.contentType));
-    final mappedRequests = requestParser.mapRequests(requestsByContentType);
+    final httpRequests = requests.where((e) => e.scheme == 'http');
+    final mappedRequests = requestParser.mapRequests(httpRequests);
     final listedRequests = requestParser.listMappedRequests(mappedRequests);
     final sortedRequests = requestParser.sortRequests(listedRequests);
-    final requestsOfContentType = RequestsOfContentType(
-      contentTypes: contentTypes,
-      requests: sortedRequests,
-    );
-    return requestsOfContentType;
+    return sortedRequests;
   }
 
   void _exportResultsToFile({
-    required RequestsOfContentType requestsOfContentType,
-    required String outputPath,
+    required List<RequestsFromPath> requests,
     required int elapsedMilisseconds,
   }) {
+    final outputPath = '${rootDirectoryPath}_requests.txt';
     final outputAnalysisFile = File(outputPath);
-    final outputRequestData = requestParser
-        .generateRequestsOutputFromList(requestsOfContentType.requests);
+    final outputRequestData =
+        requestParser.generateRequestsOutputFromList(requests);
 
     outputAnalysisFile.writeAsStringSync(
-        'Content type: ${requestsOfContentType.contentTypes.toString()}\n');
-    outputAnalysisFile.writeAsStringSync(
       'Errors: $_errors\n',
-      mode: FileMode.append,
+      mode: FileMode.write,
     );
     outputAnalysisFile.writeAsStringSync(
       'Elapsed time: ${elapsedMilisseconds}ms\n',
