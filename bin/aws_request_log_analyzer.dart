@@ -1,4 +1,4 @@
-import 'shared/util/file_reader.dart';
+import 'file_reader.dart';
 
 void main(List<String> arguments) {
   if (arguments.length != 1) {
