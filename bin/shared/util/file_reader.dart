@@ -18,17 +18,22 @@ class FileReader {
     stopwatch.start();
     final files = _readFiles();
     final requests = _extractRequests(files, requestFilter);
-    final results = _analyzeRequests(requests);
+    final groupedRequests = _analyzeRequests(requests);
     stopwatch.stop();
 
     _exportResultsToFile(
-      requests: results.toList(),
+      requests: groupedRequests.toList(),
       elapsedMilisseconds: stopwatch.elapsedMilliseconds,
     );
   }
 
   Iterable<FileSystemEntity> _readFiles() {
     final rootDirectory = Directory(rootDirectoryPath);
+
+    if (!rootDirectory.existsSync()) {
+      throw FileSystemException('Directory path provided is does not exist.');
+    }
+
     return _getFilesFromRootDirectory(rootDirectory);
   }
 
@@ -57,15 +62,14 @@ class FileReader {
     int totalFiles = fileEntities.length;
 
     for (var fileEntity in fileEntities) {
-      final decodedFile = _decodeFile(fileEntity.path);
+      final decodedFile = _decodeGzipFile(fileEntity.path);
       final lines = _extractFileContentsSeparatedByLines(decodedFile);
       final extractedRequests =
           requestParser.extractRequestsFromFileContent(lines);
       requests.addAll(extractedRequests);
 
       decodedFile.delete();
-      filesExtracted++;
-      print('$filesExtracted/$totalFiles files extracted');
+      print('${filesExtracted++}/$totalFiles files extracted');
     }
 
     if (requestFilter != null) {
@@ -87,7 +91,7 @@ class FileReader {
     }
   }
 
-  File _decodeFile(String filePath) {
+  File _decodeGzipFile(String filePath) {
     final file = File(filePath);
     final decodedBytes = gZipCodec.decode(file.readAsBytesSync());
     final decodedFile = File(filePath.split('.').first + '.log');
@@ -98,8 +102,7 @@ class FileReader {
   Iterable<RequestsFromPath> _analyzeRequests(
     List<Request> requests,
   ) {
-    final httpRequests = requests.where((e) => e.scheme == 'http');
-    final mappedRequests = requestParser.mapRequests(httpRequests);
+    final mappedRequests = requestParser.mapRequests(requests);
     final listedRequests = requestParser.listMappedRequests(mappedRequests);
     final sortedRequests = requestParser.sortRequests(listedRequests);
     return sortedRequests;

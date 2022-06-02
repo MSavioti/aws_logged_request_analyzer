@@ -36,20 +36,6 @@ class RequestParser {
     return requests;
   }
 
-  RequestsFromPath _updateValue(
-    RequestsFromPath requestsFromPath,
-    Request request,
-  ) {
-    requestsFromPath.requests.add(request);
-    return requestsFromPath;
-  }
-
-  RequestsFromPath _addValue(Request request) {
-    final groupedRequest = RequestsFromPath(path: request.url);
-    groupedRequest.requests.add(request);
-    return groupedRequest;
-  }
-
   List<Request> extractRequestsFromFileContent(List<String> fileContentLines) {
     final filteredLines = _filterUploadedFiles(fileContentLines);
     final requests = <Request>[];
@@ -63,12 +49,6 @@ class RequestParser {
     }
 
     return requests;
-  }
-
-  List<String> _filterUploadedFiles(List<String> fileContentLines) {
-    return fileContentLines
-        .where((line) => !line.contains('/wp-content/uploads'))
-        .toList();
   }
 
   String generateRequestsOutputFromMap(
@@ -100,8 +80,28 @@ class RequestParser {
   List<RequestsFromPath> sortRequests(List<RequestsFromPath> groupedRequests) {
     final sortedRequests = groupedRequests
       ..sort(
-        (a, b) => a.compareTo(b),
+        (a, b) => b.compareTo(a),
       );
     return sortedRequests;
+  }
+
+  RequestsFromPath _addValue(Request request) {
+    final groupedRequest = RequestsFromPath(path: request.url);
+    groupedRequest.requests.add(request);
+    return groupedRequest;
+  }
+
+  RequestsFromPath _updateValue(
+    RequestsFromPath requestsFromPath,
+    Request request,
+  ) {
+    requestsFromPath.requests.add(request);
+    return requestsFromPath;
+  }
+
+  List<String> _filterUploadedFiles(List<String> fileContentLines) {
+    return fileContentLines
+        .where((line) => !line.contains('/wp-content/uploads'))
+        .toList();
   }
 }
