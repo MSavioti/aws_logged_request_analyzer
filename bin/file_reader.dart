@@ -31,7 +31,7 @@ class FileReader {
     final rootDirectory = Directory(rootDirectoryPath);
 
     if (!rootDirectory.existsSync()) {
-      throw FileSystemException('Directory path provided is does not exist.');
+      throw FileSystemException('Directory path provided does not exist.');
     }
 
     return _getFilesFromRootDirectory(rootDirectory);
